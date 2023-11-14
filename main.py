@@ -3,7 +3,10 @@ import random
 import string
 import tkinter as tk
 from tkinter import PhotoImage, messagebox, ttk
-from my_module import load_user_accounts,is_valid_username, is_valid_password, create_account, deposit, withdraw, view_transactions
+
+from database import Database
+from my_module import load_user_accounts,is_valid_username, is_valid_password, create_account, deposit, withdraw, \
+    view_transactions
 
 
 class BankApp:
@@ -14,7 +17,7 @@ class BankApp:
         self.button_width = 20
         self.button_height = 2
         self.custom_font = ("Helvetica", 14)
-
+        self.db = Database
         # Initialize user_accounts dictionary
         self.user_accounts = load_user_accounts()
 
@@ -70,6 +73,14 @@ class BankApp:
         for widget in self.main_frame.winfo_children():
             widget.destroy()
 
+    def go_to_main_menu(self):
+        self.clear_frame()
+        self.root.destroy()  # Destroy the current root window
+
+        # Recreate and run the BankApp instance
+        app = BankApp()
+        app.run()
+
     def generate_random_password(self, length=12):
         # Define the characters that can be used in the password
         characters = string.ascii_letters + string.digits + string.punctuation
@@ -103,8 +114,7 @@ class BankApp:
         self.clear_frame()
 
         # Labels and Entry widgets
-        tk.Label(self.main_frame, text="Username:", font=self.custom_font).grid(row=0, column=0,
-                                                                                                   pady=10)
+        tk.Label(self.main_frame, text="Username:", font=self.custom_font).grid(row=0, column=0, pady=10)
         username_entry = tk.Entry(self.main_frame, font=self.custom_font)
         username_entry.grid(row=0, column=1, pady=10)
 
@@ -130,9 +140,12 @@ class BankApp:
                                        font=self.custom_font)
         create_account_btn.grid(row=4, column=0, columnspan=2, pady=20)
 
-        back_to_menu_btn = tk.Button(self.main_frame, text="Back to Main Menu", command=self.__init__,
-                                     font=self.custom_font)
-        back_to_menu_btn.grid(row=5, column=0, columnspan=2, pady=10)
+        # Back button
+        ttk.Button(self.main_frame, text="Back", command=self.go_to_main_menu).grid(row=5, column=0, columnspan=2,
+                                                                                    pady=10)
+
+        # back_to_menu_btn = tk.Button(self.main_frame, text="Back to Main Menu", command=lambda: self.main_menu()).pack(pady=10)
+        # back_to_menu_btn.grid(row=5, column=0, columnspan=2, pady=10)
 
     def process_new_account(self, username, password, balance):
         try:
@@ -151,7 +164,7 @@ class BankApp:
 
         create_account(self.user_accounts, username, balance, password)
         messagebox.showinfo("Success", f"Account created successfully for {username} with balance R{balance}")
-        self.main_menu()  # Use main_menu to go back to the main menu
+        self.show_transaction_menu(username)  # Use main_menu to go back to the main menu
 
     def login(self):
         self.clear_frame()
@@ -171,7 +184,9 @@ class BankApp:
         ttk.Button(self.main_frame, text="Login", command=lambda: self.process_login(
             username_entry.get(), password_entry.get())).pack(pady=10)
 
-        ttk.Button(self.main_frame, text="Back to Main Menu", command=self.main_menu).pack(pady=10)
+        ttk.Button(self.main_frame, text="Back", command=self.go_to_main_menu).pack(pady=10)
+
+
 
     def process_login(self, username, password):
         if username == "" or username not in self.user_accounts or self.user_accounts[username]['password'] != password:
@@ -258,9 +273,11 @@ class BankApp:
 
         tk.Label(self.main_frame, text="===== TRANSACTIONS =====", font=self.custom_font).pack()
 
-        try:
-            transactions = view_transactions(username)
+        transactions = self.db.view_transactions(username)
 
+        if not transactions:
+            tk.Label(self.main_frame, text="No transactions available.", font=self.custom_font).pack()
+        else:
             for transaction_info in transactions:
                 timestamp, _, transaction_type, amount, current_balance = transaction_info
                 amount = float(amount)
@@ -272,9 +289,6 @@ class BankApp:
                                    f"Current Balance: R{current_balance:.2f}\n"
 
                 tk.Label(self.main_frame, text=transaction_text, font=self.custom_font).pack(pady=5)
-
-        except Exception as e:
-            tk.Label(self.main_frame, text=f"Error fetching transactions: {e}", font=self.custom_font, fg="red").pack()
 
         tk.Label(self.main_frame, text="===== END OF TRANSACTIONS =====", font=self.custom_font).pack()
 
