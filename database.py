@@ -53,9 +53,10 @@ class Database:
 
     def view_transactions(self, username):
         transactions = []
-        cursor = self.db_conn.cursor()
-        cursor.execute('SELECT * FROM transactions WHERE username = ? ORDER BY timestamp DESC', (username,))
-        for row in cursor.fetchall():
+        self.cursor.execute(
+            'SELECT timestamp, transaction_type, amount, current_balance FROM transactions WHERE username = ? ORDER BY timestamp DESC',
+            (username,))
+        for row in self.cursor.fetchall():
             transactions.append(row)
         return transactions
 
