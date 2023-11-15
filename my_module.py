@@ -54,9 +54,9 @@ def log_transaction(username, transaction_type, amount, balance):
     db.log_transaction(username, transaction_type, amount, balance)
 
 
-def view_transactions(username):
+def view_user_transactions(username):
     db = Database()
-    return db.view_transactions(username)
+    return db.view_user_transactions(username)
 
 
 def generate_random_password(length=12):
