@@ -22,7 +22,7 @@ class BankApp:
         x = (screen_width - window_width) // 2
         y = (screen_height - window_height) // 2
 
-        #self.root.geometry(f"{window_width}x{window_height}+{x}+{y}")
+        # self.root.geometry(f"{window_width}x{window_height}+{x}+{y}")
 
         self.button_width = 20
         self.button_height = 2
@@ -126,11 +126,14 @@ class BankApp:
         # Checkbox to generate password
         self.generate_password_var = tk.BooleanVar()
         generate_password_checkbox = tk.Checkbutton(self.main_frame, text="Generate Password",
-                                                    variable=self.generate_password_var, font=self.custom_font, bg='#ADD8E6',
+                                                    variable=self.generate_password_var, font=self.custom_font,
+                                                    bg='#ADD8E6',
                                                     command=lambda: self.generate_password(password_entry))
         generate_password_checkbox.grid(row=2, column=0, columnspan=2, pady=5, padx=20)
 
-        tk.Label(self.main_frame, text="Enter initial balance:", bg='#ADD8E6', font=self.custom_font).grid(row=3, column=0, pady=10)
+        tk.Label(self.main_frame, text="Enter initial balance:", bg='#ADD8E6', font=self.custom_font).grid(row=3,
+                                                                                                           column=0,
+                                                                                                           pady=10)
         balance_entry = tk.Entry(self.main_frame, font=self.custom_font)
         balance_entry.grid(row=3, column=1, pady=10, padx=20)
 
@@ -144,7 +147,6 @@ class BankApp:
         # Back button
         ttk.Button(self.main_frame, text="Back", command=self.go_to_main_menu).grid(row=5, column=0, columnspan=2,
                                                                                     pady=10)
-
 
     def process_new_account(self, username, password, balance):
         try:
@@ -214,6 +216,13 @@ class BankApp:
             pady=5)
         ttk.Button(self.main_frame, text="Exit", command=self.root.destroy).pack(pady=5)
 
+    def log_transaction(self, username, transaction_type, amount, balance):
+        cursor = self.db_conn.cursor()
+        cursor.execute(
+            'INSERT INTO transactions (username, transaction_type, amount,current_balance) VALUES (?, ?, ?, ?)',
+            (username, transaction_type, amount, balance))
+        self.db_conn.commit()
+
     def process_deposit_withdraw(self, username, transaction_type):
         self.clear_frame()
 
@@ -225,7 +234,7 @@ class BankApp:
 
         # Entry for entering the transaction amount
         amount_label_text = f"Enter amount to {transaction_type}: R"
-        amount_label = tk.Label(self.main_frame, text=amount_label_text, font=self.custom_font)
+        amount_label = tk.Label(self.main_frame, text=amount_label_text, bg='#ADD8E6', font=self.custom_font)
         amount_label.pack()
 
         amount_entry = tk.Entry(self.main_frame, font=self.custom_font)
@@ -264,7 +273,10 @@ class BankApp:
         if action == withdraw and amount > self.user_accounts[username]['balance']:
             messagebox.showerror("Error", "Withdrawal amount exceeds the current balance.")
             return
+
         action(self.user_accounts, username, amount)
+        self.log_transaction(username, action.__name__, amount, self.user_accounts[username]['balance'])
+
         messagebox.showinfo("Success", f"Transaction completed successfully. New balance: "
                                        f"R{self.user_accounts[username]['balance']:.2f}")
         self.show_transaction_menu(username)
@@ -297,7 +309,7 @@ class BankApp:
                 transaction_text = f"\nTime: {transaction_time}\n{transaction_type}: R{amount:.2f}, " \
                                    f"Current Balance: R{current_balance:.2f}\n"
 
-                tk.Label(self.main_frame, text=transaction_text, font=("Helvetica", 10)).pack(pady=5)
+                tk.Label(self.main_frame, text=transaction_text, bg='#ADD8E6', font=("Helvetica", 10)).pack(pady=5)
 
         ttk.Button(self.main_frame, text="Back to Transaction Menu",
                    command=lambda: self.show_transaction_menu(username)).pack(pady=10)
