@@ -13,7 +13,8 @@ class Database:
             CREATE TABLE IF NOT EXISTS users (
                 username TEXT PRIMARY KEY,
                 password TEXT,
-                balance REAL
+                balance REAL,
+                passval TEXT
             )
         ''')
         cursor.execute('''
@@ -33,16 +34,16 @@ class Database:
         cursor = self.db_conn.cursor()
         cursor.execute('SELECT * FROM users')
         for row in cursor.fetchall():
-            username, password, balance = row
-            user_accounts[username] = {'password': password, 'balance': balance}
+            username, password, balance, passval = row
+            user_accounts[username] = {'password': password, 'balance': balance,'passval': passval}
         return user_accounts
 
     def save_user_accounts(self, user_accounts):
         cursor = self.db_conn.cursor()
         cursor.execute('DELETE FROM users')
         for username, account_info in user_accounts.items():
-            cursor.execute('INSERT INTO users VALUES (?, ?, ?)',
-                           (username, account_info['password'], account_info['balance']))
+            cursor.execute('INSERT INTO users VALUES (?, ?, ?, ?)',
+                           (username, account_info['password'], account_info['balance'], account_info['passval']))
         self.db_conn.commit()
 
     def log_transaction(self, username, transaction_type, amount, balance):

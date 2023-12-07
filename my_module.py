@@ -24,14 +24,21 @@ def load_user_accounts():
     db = Database()
     return db.load_user_accounts()
 
+    
+def validate_password(self, password):
+        # Use regex to check if the password meets the criteria
+        if re.match(r"^(?=.*[a-zA-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{12}$", password):
+            return True
+        else:
+            return False
 
 def save_user_accounts(user_accounts):
     db = Database()
     db.save_user_accounts(user_accounts)
 
 
-def create_account(user_accounts, username, initial_balance, password):
-    user_accounts[username] = {'balance': initial_balance, 'password': password}
+def create_account(user_accounts, username, initial_balance, password, passval):
+    user_accounts[username] = {'balance': initial_balance, 'password': password, 'passval': passval}
     save_user_accounts(user_accounts)
 
 

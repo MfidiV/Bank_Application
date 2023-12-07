@@ -5,7 +5,7 @@ import tkinter as tk
 from tkinter import PhotoImage, messagebox, ttk, simpledialog
 import sqlite3
 from database import Database
-from my_module import load_user_accounts, is_valid_username, create_account, deposit, withdraw
+from my_module import load_user_accounts, is_valid_username, create_account, deposit, withdraw, validate_password
 
 
 class BankApp:
@@ -83,7 +83,7 @@ class BankApp:
         app.run()
 
     def generate_random_password(self, length=12):
-        # Define the characters that can be used in the password
+    # Define the characters that can be used in the password
         characters = string.ascii_letters + string.digits + string.punctuation
 
         # Ensure that the password contains at least one of each category
@@ -92,8 +92,8 @@ class BankApp:
         digit = random.choice(string.digits)
         symbol = random.choice(string.punctuation)
 
-        # Combine all characters
-        all_chars = characters + lowercase_letter + uppercase_letter + digit + symbol
+        # Combine all characters except the first one
+        all_chars = characters + digit + symbol
 
         # Generate the remaining characters randomly
         remaining_length = length - 4  # 4 characters are fixed as per the categories
@@ -102,7 +102,11 @@ class BankApp:
         # Shuffle the password characters to make it more random
         password = ''.join(random.sample(password, len(password)))
 
-        return lowercase_letter + uppercase_letter + digit + symbol + password
+        # Insert the first character randomly in the password
+        first_char = random.choice(string.ascii_letters)
+        password = first_char + lowercase_letter + uppercase_letter + digit + symbol + password
+
+        return password
 
     def generate_password(self, password_entry):
         if self.generate_password_var.get():
@@ -123,7 +127,7 @@ class BankApp:
         password_entry = tk.Entry(self.main_frame, font=self.custom_font)
         password_entry.grid(row=1, column=1, pady=10, padx=20)
 
-        tk.Label(self.main_frame, text="Dog name(Security):", bg='#ADD8E6', font=self.custom_font).grid(row=2, column=0, pady=10)
+        tk.Label(self.main_frame, text="Your childhood hero:", bg='#ADD8E6', font=self.custom_font).grid(row=2, column=0, pady=10)
         val_entry = tk.Entry(self.main_frame, font=self.custom_font)
         val_entry.grid(row=2, column=1, pady=10)
 
@@ -144,7 +148,7 @@ class BankApp:
         # Buttons
         create_account_btn = ttk.Button(self.main_frame, text="Create Account",
                                         command=lambda: self.process_new_account(
-                                            username_entry.get(), password_entry.get(), balance_entry.get()),
+                                            username_entry.get(), password_entry.get(), balance_entry.get(), val_entry.get()),
                                         style="TButton")
         create_account_btn.grid(row=5, column=0, columnspan=2, pady=20)
 
@@ -152,7 +156,7 @@ class BankApp:
         ttk.Button(self.main_frame, text="Back", command=self.go_to_main_menu).grid(row=6, column=0, columnspan=2,
                                                                                     pady=10)
 
-    def process_new_account(self, username, password, balance):
+    def process_new_account(self, username, password, balance,passval):
         try:
             balance = float(balance)
         except ValueError:
@@ -167,7 +171,7 @@ class BankApp:
             messagebox.showerror("Error", "Username already exists. Please choose another username.")
             return
 
-        create_account(self.user_accounts, username, balance, password)
+        create_account(self.user_accounts, username, balance, password, passval)
         messagebox.showinfo("Success", f"Account created successfully for {username} with balance R{balance}")
         self.show_transaction_menu(username)  # Use main_menu to go back to the main menu
 
@@ -213,27 +217,27 @@ class BankApp:
     def forgot_password(self):
         username = simpledialog.askstring("Forgot Password", "Enter your account username:")
 
+        
         if username:
             if username in self.user_accounts:
-                # Step 1: Allow the user to set a new password manually
-                new_password = simpledialog.askstring("Password Reset", "Enter a new password:")
-
-                if new_password:
-                    # Step 3: Update Password in Database
-                    # new_password = self.db.password(new_password)
-                    self.update_password(username, new_password)
-
-                    # Log the password reset transaction
-                    # self.log_transaction(username, "password_reset", "********", new_password)
-
-                    messagebox.showinfo("Password Reset", f"Your password has been reset successfully.")
+                hero = simpledialog.askstring("Recovery", "Your hero name growing up:")
+                if hero == self.user_accounts[username]['passval']:
+                    # Step 1: Allow the user to set a new password manually
+                    new_password = simpledialog.askstring("Password Reset", "Enter a new password:")
+                    if new_password:
+                        # Step 3: Update Password in Database
+                        self.update_password(username, new_password)
+                        messagebox.showinfo("Password Reset", f"Your password has been reset successfully.")
+                    else:
+                        messagebox.showerror("Password Reset Error",
+                                             "Password reset canceled. Please enter a valid new password.")
                 else:
-                    messagebox.showerror("Password Reset Error",
-                                         "Password reset canceled. Please enter a valid new password.")
+                    messagebox.showinfo("Hero Name Incorrect", "Your hero name is not correct.")
             else:
                 messagebox.showerror("User Not Found", "Username not found. Please enter a valid username.")
         else:
             messagebox.showwarning("Operation Canceled", "Password reset operation canceled.")
+
 
     def show_transaction_menu(self, username):
         self.clear_frame()
