@@ -68,7 +68,7 @@ Thee Best Bank is a simple banking application written in Python using the Tkint
 - `my_module.py` : Module for user-related functions
 - `database.py` : Database module for SQLite operations
 
-## **Contributing**
+## **`Contributing`**
 - Contributions are welcome! If you find any bugs or have ideas for improvements, feel free to open an issue or submit a pull request.
 
 ## **`Aknowledgements`**
