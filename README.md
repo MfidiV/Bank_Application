@@ -10,7 +10,7 @@ Thee Best Bank is a simple banking application written in Python using the Tkint
 ## **`Installation`**
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/your-repository.git
+   git clone https://github.com/MfidiV/Bank_Application.git
    cd your-repository```
 
 ## **`Usage`**
